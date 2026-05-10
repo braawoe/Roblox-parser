@@ -42,7 +42,7 @@ Module.Formats = {
 		return `Vector3int16.new({Arguments})`
 	end,
 	["Color3"] = function(self, Value)
-		return `Color3.fromRGB({Value.R*255}, {Value.G*255}, {Value.B*255})`
+		return `Color3.fromRGB({math.round(Value.R*255)}, {math.round(Value.G*255)}, {math.round(Value.B*255)})`
 	end,
 	["NumberRange"] = function(self, Value)
 		local Min = self:Format(Value.Min)
@@ -61,7 +61,7 @@ Module.Formats = {
 		return `PathWaypoint.new({Position}, {Action}, "{Value.Label}")`
 	end,
 	["PhysicalProperties"] = function(self, Value)
-		return `PhysicalProperties.new("{Value.Density}, {Value.Friction}, {Value.Elasticity}, {Value.FrictionWeight}, {Value.ElasticityWeight}`
+		return `PhysicalProperties.new({Value.Density}, {Value.Friction}, {Value.Elasticity}, {Value.FrictionWeight}, {Value.ElasticityWeight})`
 	end,
 	["Ray"] = function(self, Value)
 		local Origin = self:Format(Value.Origin)
@@ -72,7 +72,7 @@ Module.Formats = {
 		return `UDim2.new({Value.X.Scale},{Value.X.Offset},{Value.Y.Scale},{Value.Y.Offset})`
 	end,
 	["UDim"] = function(self, Value)
-		return `UDim2.new({Value.Scale},{Value.Offset})`
+		return `UDim.new({Value.Scale},{Value.Offset})`
 	end,
 	["BrickColor"] = function(self, Value)
 		return `BrickColor.new("{Value.Name}")`
@@ -87,23 +87,23 @@ Module.Formats = {
 	end,
 	["Font"] = function(self, Value)
 		local Family = self:Format(Value.Family)
-		return `Font.new({Family}, {Value.Weight}, {Value.Style.Name})`
+		local Weight = self:Format(Value.Weight)
+		local Style = self:Format(Value.Style)
+
+		return `Font.new({Family}, {Weight}, {Style})`
 	end,
-	["Enum"] = `%*`,
+	["Enum"] = `%s`,
 	["string"] = function(self, Value)
-		local Filtered = self:MakePrintable(Value)
-		local FormatBase = `"%*"`
+		local HasNewLine = Value:find("[\n\r]")
+		local HasDoubleBracket = Value:find("]]")
 
-		local HasBrackets = Filtered:find("%[%[=*[[]")
-		local HasNewLine = Filtered:find("[\n\r]")
-
-		if not HasBrackets and HasNewLine then
-			FormatBase = "[[%*]]"
+		if HasNewLine and not HasDoubleBracket then
+			return `[[{Value}]]`
 		end
 
-		return FormatBase:format(Filtered)
+		return `"{self:MakePrintable(Value, true)}"`
 	end,
-	["number"] = `%*`,
+	["number"] = `%s`,
 	["TweenInfo"] = function(self, Value)
 		local Style = `Enum.EasingStyle.{Value.EasingStyle.Name}`
 		local Direction = `Enum.EasingDirection.{Value.EasingDirection.Name}`
@@ -118,7 +118,7 @@ Module.Formats = {
 
 		return `TweenInfo.new({Time}, {Style}, {Direction})`
 	end,
-	["boolean"] = `%*`,
+	["boolean"] = `%s`,
 	["Instance"] = function(self, Object: Instance)
 		local Path, Length = self.Parser:MakePathString({
 			Object = Object
@@ -162,12 +162,16 @@ function Module:IsPrintable(Character: string, NoNewlines: boolean)
 end
 
 function Module:MakePrintable(String: string, NoNewlines: boolean): string
-	local Filtered = String:gsub("\"", [[\"]])
+	local Filtered = String:gsub("\\", "\\\\")
+	Filtered = Filtered:gsub("\"", "\\\"")
 
 	return Filtered:gsub(".", function(Character: string)
 		if NoNewlines then
-			Character = Character:gsub("\n", "\\n")
-			Character = Character:gsub("\r", "\\r")
+			if Character == "\n" then
+				return "\\n"
+			elseif Character == "\r" then
+				return "\\r"
+			end
 		end
 
 		--// Printable character
@@ -188,7 +192,8 @@ end
 function Module:RoundValues(Table: table): table
 	local RoundedTable = {}
 	
-	for _, Value in next, Table do
+	for Index = 1, #Table do
+		local Value = Table[Index]
 		local Rounded = math.round(Value)
 		table.insert(RoundedTable, Rounded)
 	end

@@ -32,7 +32,7 @@ type Module = {
 
 --// Module
 local Module = {
-	VariableBase = "Jit"
+	VariableBase = "Jit%d"
 }
 Module.__index = Module
 
@@ -124,10 +124,11 @@ end
 
 function Module:IsGlobal(Value: (string|Instance)): (string|boolean)
 	local IndexFunc = self.IndexFunc
+	local Formatter = self.Formatter
 
 	--// Check based on instance name
 	if typeof(Value) == "Instance" then
-		local Name = IndexFunc(Value, "Name")
+		local Name = Formatter:ObjectToString(Value)
 		return Globals[Name] == Value
 	end
 
@@ -199,7 +200,7 @@ function Module:OrderVariables(Variables: VariablesDict): Table
 
 	for Lookup, Data in next, Variables do
 		local Order = Data.Order
-		table.insert(Ordered, Order, Data)
+		Ordered[Order] = Data
 	end
 
 	return Ordered
