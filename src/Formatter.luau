@@ -63,7 +63,7 @@ Module.Formats = {
 	end,
 	["NumberSequence"] = function(self, Value)
 		local Keypoints = {}
-		for _, Keypoint in next, Value.Keypoints do
+		for _, Keypoint in ipairs(Value.Keypoints) do
 			table.insert(Keypoints, self:Format(Keypoint))
 		end
 		return `NumberSequence.new({table.concat(Keypoints, ", ")})`
