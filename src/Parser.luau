@@ -65,12 +65,16 @@ function Module:ParseTableIntoString(Data: ParseTableIntoStringData): (string, n
 	end
 
 	table.sort(Keys, function(A, B)
-		if typeof(A) == typeof(B) then
-			if typeof(A) == "number" or typeof(A) == "string" then
+		local TypeA = typeof(A)
+		local TypeB = typeof(B)
+
+		if TypeA == TypeB then
+			if TypeA == "number" or TypeA == "string" then
 				return A < B
 			end
+			return tostring(A) < tostring(B)
 		end
-		return typeof(A) < typeof(B)
+		return TypeA < TypeB
 	end)
 
 	local Position = 0

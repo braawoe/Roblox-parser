@@ -349,12 +349,21 @@ function Module:FindValueSwap(Value)
 end
 
 function Module:NeedsBrackets(String: string)
-	if not String then return end
+	if not String then return true end
 
 	--// Only allow strings for bracket checking
 	if typeof(String) ~= "string" then 
 		return true
 	end
+
+	--// Check if it's a Lua keyword
+	local Keywords = {
+		["and"] = true, ["break"] = true, ["do"] = true, ["else"] = true, ["elseif"] = true,
+		["end"] = true, ["false"] = true, ["for"] = true, ["function"] = true, ["if"] = true,
+		["in"] = true, ["local"] = true, ["nil"] = true, ["not"] = true, ["or"] = true,
+		["repeat"] = true, ["return"] = true, ["then"] = true, ["true"] = true, ["until"] = true, ["while"] = true
+	}
+	if Keywords[String] then return true end
 
 	return not String:match("^[%a_][%w_]*$")
 end
@@ -363,6 +372,11 @@ function Module:MakeName(Value): string?
 	local Name = self:ObjectToString(Value)
 	Name = Name:gsub("[./ #%@$%£+-()\n\r]", "")
 	Name = self:MakePrintable(Name, true)
+
+	--// Ensure it doesn't start with a number
+	if Name:match("^%d") then
+		Name = "_" .. Name
+	end
 
 	--// Check if the name can be used for a variable
 	if self:NeedsBrackets(Name) then return end
