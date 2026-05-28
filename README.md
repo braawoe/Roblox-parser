@@ -1,4 +1,4 @@
 Credits to depso
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Jsssiee/Roblox-parser/refs/heads/main/dist/Main.luau"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/braawoe/Roblox-parser/main/dist/Main.luau"))()
 ```
