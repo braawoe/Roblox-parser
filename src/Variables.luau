@@ -37,6 +37,10 @@ local Module = {
 Module.__index = Module
 
 local Globals = getfenv(1)
+Globals.workspace = workspace
+Globals.game = game
+Globals.shared = shared
+Globals.script = script
 
 --// Variable pre-render functions 
 local RenderFuncs = {

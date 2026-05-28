@@ -59,8 +59,27 @@ function Module:ParseTableIntoString(Data: ParseTableIntoStringData): (string, n
 	local TableString = `{not NoBrackets and "{" or ""}\n`
 
 	--// Generate string
+	local Keys = {}
+	for Key in next, Table do
+		table.insert(Keys, Key)
+	end
+
+	table.sort(Keys, function(A, B)
+		local TypeA = typeof(A)
+		local TypeB = typeof(B)
+
+		if TypeA == TypeB then
+			if TypeA == "number" or TypeA == "string" then
+				return A < B
+			end
+			return tostring(A) < tostring(B)
+		end
+		return TypeA < TypeB
+	end)
+
 	local Position = 0
-	for Index, Value in next, Table do
+	for _, Index in ipairs(Keys) do
+		local Value = Table[Index]
 		Position += 1
 
 		local ValueString = Formatter:Format(Value, Data)
@@ -185,7 +204,7 @@ function Module:MakePathString(Data: table): (string, number)
 	end
 
 	--// Make the path string
-	for Index, Object in next, Parents do
+	for Index, Object in ipairs(Parents) do
 		local String = Formatter:ObjectToString(Object)
 
 		--// Check for an existing variable
